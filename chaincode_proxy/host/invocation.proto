@@ -1,0 +1,58 @@
+// sources related to theroetical ideas for bidirectional streaming and oneof feature: 
+// https://groups.google.com/forum/#!topic/grpc-io/sVqORAROElI
+// https://github.com/grpc/grpc/issues/13894
+// https://stackoverflow.com/questions/30008476/can-both-ends-of-a-grpc-connection-accept-method-calls
+// https://groups.google.com/forum/#!searchin/grpc-io/grpc$20tunnel%7Csort:date/grpc-io/wAF9T0nQcH0/onnfZbJBAwAJ
+// https://stackoverflow.com/questions/35648518/protobuf-rpc-callbacks 
+
+syntax = "proto3";
+
+package invocation;
+
+service Invocation {
+  rpc TransactionInvocation (stream ChaincodeWrapperMessage) returns (stream ChaincodeProxyMessage) {}
+}
+
+
+message ChaincodeWrapperMessage {
+  oneof message_oneof {
+	InvocationRequest invocation_request = 1;
+	GetStateResponse get_state_response = 2;
+	PutStateResponse put_state_response = 3;
+  }
+}
+
+message InvocationRequest {
+  bytes chaincode_uuid = 1;
+  string function_name = 2;
+  repeated string arguments = 3;
+}
+
+message GetStateResponse {
+  string value = 1;
+}
+
+message PutStateResponse {
+  string acknowledgement = 1;
+}
+
+message ChaincodeProxyMessage {
+  oneof type {
+      InvocationResponse invocation_response = 1;
+      GetStateRequest get_state_request = 2;
+      PutStateRequest put_state_request = 3;
+  }
+}
+
+message InvocationResponse {
+  string execution_response = 1;
+}
+
+message GetStateRequest {
+  string key = 1;
+}
+
+message PutStateRequest {
+  string key = 1;
+  string value = 2;
+}
